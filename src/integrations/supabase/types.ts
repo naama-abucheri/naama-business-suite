@@ -104,6 +104,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quotations: {
+        Row: {
+          client_name: string
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          product_name: string
+          quantity: number
+          total_amount: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          client_name: string
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          product_name: string
+          quantity: number
+          total_amount: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          product_name?: string
+          quantity?: number
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           buying_price: number
