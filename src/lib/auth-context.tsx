@@ -21,41 +21,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-    if (data) setRole(data.role as AppRole);
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
+      if (error) {
+        console.warn("Error fetching role:", error);
+        return;
+      }
+      if (data) setRole(data.role as AppRole);
+    } catch (err) {
+      console.error("Failed to fetch role:", err);
+    }
   };
 
+  // Initialize auth once when component mounts
   useEffect(() => {
+    let isMounted = true;
+
+    const initAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          if (isMounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (isMounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchRole(session.user.id);
+          } else {
+            setRole(null);
+          }
+          
+          setIsInitialized(true);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Auth initialization error:", err);
+        if (isMounted) {
+          setIsInitialized(true);
+          setLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Listen for auth changes only after initialization
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    let isMounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!isMounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
+        
         if (session?.user) {
           await fetchRole(session.user.id);
         } else {
           setRole(null);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchRole(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, [isInitialized]);
 
   const signUp = async (email: string, password: string, fullName: string, selectedRole: AppRole) => {
     const { data, error } = await supabase.auth.signUp({ email, password });

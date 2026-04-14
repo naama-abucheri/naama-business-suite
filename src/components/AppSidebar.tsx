@@ -21,6 +21,7 @@ const employerLinks = [
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/sales", label: "Sales", icon: ShoppingCart },
   { to: "/receipts", label: "Receipts", icon: Receipt },
+  { to: "/quotations", label: "Quotations", icon: ShoppingCart },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
 ] as const;
 
@@ -29,6 +30,8 @@ const employeeLinks = [
   { to: "/inventory", label: "Inventory", icon: Package },
   { to: "/add-product", label: "Add Stock", icon: PackagePlus },
   { to: "/clients", label: "Clients", icon: Users },
+  { to: "/receipts", label: "Receipts", icon: Receipt },
+  { to: "/quotations", label: "Quotations", icon: ShoppingCart },
 ] as const;
 
 export function AppSidebar() {

@@ -36,10 +36,9 @@ export const Route = createRootRoute({
       { name: "description", content: "Naama is a smart inventory, client, and sales management system for modern businesses." },
       { name: "author", content: "Naama" },
       { property: "og:title", content: "Naama — Smart Inventory Management" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:description", content: "Naama is a smart inventory, client, and sales management system for modern businesses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

@@ -31,11 +31,10 @@ function ReceiptsPage() {
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
-    if (!loading && role !== "employer") navigate({ to: "/dashboard" });
-  }, [user, role, loading, navigate]);
+  }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user && role === "employer") {
+    if (user) {
       supabase
         .from("sales")
         .select("id, quantity_sold, selling_price, total_amount, profit, sale_date, sale_time, products(name), clients(client_name, phone_number, email)")
@@ -60,7 +59,7 @@ function ReceiptsPage() {
     win.print();
   };
 
-  if (loading || !user || role !== "employer") return null;
+  if (loading || !user) return null;
 
   return (
     <DashboardLayout>

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ReceiptsRouteImport } from './routes/receipts'
+import { Route as QuotationsRouteImport } from './routes/quotations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -27,6 +28,11 @@ const SalesRoute = SalesRouteImport.update({
 const ReceiptsRoute = ReceiptsRouteImport.update({
   id: '/receipts',
   path: '/receipts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuotationsRoute = QuotationsRouteImport.update({
+  id: '/quotations',
+  path: '/quotations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/quotations': typeof QuotationsRoute
   '/receipts': typeof ReceiptsRoute
   '/sales': typeof SalesRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/quotations': typeof QuotationsRoute
   '/receipts': typeof ReceiptsRoute
   '/sales': typeof SalesRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/inventory': typeof InventoryRoute
   '/login': typeof LoginRoute
+  '/quotations': typeof QuotationsRoute
   '/receipts': typeof ReceiptsRoute
   '/sales': typeof SalesRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/login'
+    | '/quotations'
     | '/receipts'
     | '/sales'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/login'
+    | '/quotations'
     | '/receipts'
     | '/sales'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inventory'
     | '/login'
+    | '/quotations'
     | '/receipts'
     | '/sales'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   InventoryRoute: typeof InventoryRoute
   LoginRoute: typeof LoginRoute
+  QuotationsRoute: typeof QuotationsRoute
   ReceiptsRoute: typeof ReceiptsRoute
   SalesRoute: typeof SalesRoute
 }
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/receipts'
       fullPath: '/receipts'
       preLoaderRoute: typeof ReceiptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quotations': {
+      id: '/quotations'
+      path: '/quotations'
+      fullPath: '/quotations'
+      preLoaderRoute: typeof QuotationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   InventoryRoute: InventoryRoute,
   LoginRoute: LoginRoute,
+  QuotationsRoute: QuotationsRoute,
   ReceiptsRoute: ReceiptsRoute,
   SalesRoute: SalesRoute,
 }
