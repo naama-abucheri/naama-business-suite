@@ -133,7 +133,7 @@ Design focus:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/naama-inventory-suite.git
+git clone (https://github.com/naama-abucheri/naama-business-suite.git)
 cd naama-inventory-suite
 ```
 
@@ -151,9 +151,6 @@ npm install
 
 Create a `.env` file in the root directory:
 
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_key
 ```
 
 ---
