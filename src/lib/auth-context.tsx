@@ -9,7 +9,7 @@ interface AuthState {
   session: Session | null;
   role: AppRole | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, role: AppRole, company?: { company_name: string; address?: string; phone?: string; email?: string }) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -113,7 +113,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [isInitialized]);
 
-  const signUp = async (email: string, password: string, fullName: string, selectedRole: AppRole) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    selectedRole: AppRole,
+    company?: { company_name: string; address?: string; phone?: string; email?: string }
+  ) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (!data.user) throw new Error("Signup failed");
@@ -129,6 +135,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       full_name: fullName,
     });
     if (profileError) throw profileError;
+
+    if (selectedRole === "employer" && company?.company_name) {
+      await supabase.from("company_profiles").insert({
+        user_id: data.user.id,
+        company_name: company.company_name,
+        address: company.address || null,
+        phone: company.phone || null,
+        email: company.email || email,
+      });
+    }
 
     setRole(selectedRole);
   };

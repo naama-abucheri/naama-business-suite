@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Printer, Plus, Trash2, Search } from "lucide-react";
-import type { Tables } from "@/integrations/supabase/types";
+import { useCompanyProfile } from "@/hooks/use-company-profile";
+import { printDocument } from "@/lib/print-document";
 
 interface Quotation {
   id: string;
@@ -26,8 +27,9 @@ export const Route = createFileRoute("/quotations")({
 });
 
 function QuotationsPage() {
-  const { user, role, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { profile } = useCompanyProfile();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [selected, setSelected] = useState<Quotation | null>(null);
   const [search, setSearch] = useState("");
@@ -40,7 +42,6 @@ function QuotationsPage() {
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const quotationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -87,18 +88,24 @@ function QuotationsPage() {
     fetchQuotations();
   };
 
-  const handlePrint = () => {
-    if (!quotationRef.current) return;
-    const win = window.open("", "_blank");
-    if (!win) return;
-    win.document.write(`<html><head><title>Quotation</title><style>
-      body { font-family: monospace; padding: 20px; max-width: 400px; margin: auto; color: #333; }
-      h2 { text-align: center; }
-      hr { border: 1px dashed #ccc; }
-      .row { display: flex; justify-content: space-between; margin: 4px 0; }
-    </style></head><body>${quotationRef.current.innerHTML}</body></html>`);
-    win.document.close();
-    win.print();
+  const handlePrint = (q: Quotation) => {
+    printDocument(
+      {
+        type: "QUOTATION",
+        number: q.id.slice(0, 8).toUpperCase(),
+        date: new Date(q.created_at).toLocaleDateString(),
+        bill_to: { name: q.client_name },
+        items: [{
+          description: q.product_name,
+          quantity: q.quantity,
+          unit_price: Number(q.unit_price),
+          total: Number(q.total_amount),
+        }],
+        notes: q.notes,
+        footer_message: "This is a quotation. Valid for 30 days from issue date.",
+      },
+      profile
+    );
   };
 
   const filtered = quotations.filter(
@@ -236,60 +243,22 @@ function QuotationsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading text-lg font-semibold text-foreground">Quotation Details</h2>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handlePrint} className="bg-primary text-primary-foreground">
+                <Button size="sm" onClick={() => handlePrint(selected)} className="bg-primary text-primary-foreground">
                   <Printer className="h-4 w-4 mr-1" /> Print
                 </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(selected.id)}
-                >
+                <Button size="sm" variant="destructive" onClick={() => handleDelete(selected.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            <div ref={quotationRef}>
-              <h2 style={{ textAlign: "center" }}>QUOTATION</h2>
-              <hr />
-              <div className="row" style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Date:</span>
-                <span>{new Date(selected.created_at).toLocaleDateString()}</span>
-              </div>
-              <hr />
-              <div className="row" style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Client:</span>
-                <span>{selected.client_name}</span>
-              </div>
-              <hr />
-              <div className="row" style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Product:</span>
-                <span>{selected.product_name}</span>
-              </div>
-              <div className="row" style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Quantity:</span>
-                <span>{selected.quantity}</span>
-              </div>
-              <div className="row" style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Unit Price:</span>
-                <span>${Number(selected.unit_price).toFixed(2)}</span>
-              </div>
-              <hr />
-              <div className="row" style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
-                <span>TOTAL:</span>
-                <span>${Number(selected.total_amount).toFixed(2)}</span>
-              </div>
-              {selected.notes && (
-                <>
-                  <hr />
-                  <div style={{ marginTop: "12px", fontSize: "12px" }}>
-                    <span>Notes: {selected.notes}</span>
-                  </div>
-                </>
-              )}
-              <hr />
-              <p style={{ textAlign: "center", marginTop: "12px", fontSize: "12px" }}>
-                This is a quotation. Valid until further notice.
-              </p>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Date:</span><span className="text-foreground">{new Date(selected.created_at).toLocaleDateString()}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Client:</span><span className="text-foreground font-medium">{selected.client_name}</span></div>
+              <hr className="border-border my-2" />
+              <div className="flex justify-between"><span className="text-muted-foreground">Product:</span><span className="text-foreground">{selected.product_name}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Qty × Unit:</span><span className="text-foreground">{selected.quantity} × ${Number(selected.unit_price).toFixed(2)}</span></div>
+              <div className="flex justify-between font-bold text-base pt-2 border-t border-border"><span className="text-foreground">TOTAL:</span><span className="text-primary">${Number(selected.total_amount).toFixed(2)}</span></div>
+              {selected.notes && <p className="pt-2 text-muted-foreground text-xs">Notes: {selected.notes}</p>}
             </div>
           </div>
         )}
