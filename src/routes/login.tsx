@@ -143,6 +143,37 @@ function LoginPage() {
               </div>
             )}
 
+            {isSignUp && role === "employer" && (
+              <div className="space-y-4 rounded-lg border border-border bg-secondary/30 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Company Info (for receipts)</p>
+                <div>
+                  <Label className="text-foreground">Company Name *</Label>
+                  <Input
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    required
+                    className="mt-1 bg-input border-border text-foreground"
+                  />
+                </div>
+                <div>
+                  <Label className="text-foreground">Address</Label>
+                  <Input
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                    className="mt-1 bg-input border-border text-foreground"
+                  />
+                </div>
+                <div>
+                  <Label className="text-foreground">Phone</Label>
+                  <Input
+                    value={companyPhone}
+                    onChange={(e) => setCompanyPhone(e.target.value)}
+                    className="mt-1 bg-input border-border text-foreground"
+                  />
+                </div>
+              </div>
+            )}
+
             <Button
               type="submit"
               disabled={submitting}
