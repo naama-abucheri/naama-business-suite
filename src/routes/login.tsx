@@ -16,6 +16,9 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
   const [role, setRole] = useState<"employer" | "employee">("employer");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +34,12 @@ function LoginPage() {
     setSubmitting(true);
     try {
       if (isSignUp) {
-        await signUp(email, password, fullName, role);
+        await signUp(email, password, fullName, role, role === "employer" ? {
+          company_name: companyName,
+          address: companyAddress,
+          phone: companyPhone,
+          email,
+        } : undefined);
       } else {
         await signIn(email, password);
       }
