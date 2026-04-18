@@ -84,16 +84,16 @@ function ReceiptsPage() {
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-3xl font-bold text-foreground">Receipts</h1>
-          <p className="text-muted-foreground">View and print sale receipts</p>
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">Receipts</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">View and print sale receipts</p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-input border-border text-foreground w-48"
+            className="pl-9 bg-input border-border text-foreground w-full sm:w-48"
           />
         </div>
       </div>
@@ -106,7 +106,7 @@ function ReceiptsPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full">
+          <table className="w-full min-w-[560px]">
             <thead>
               <tr className="border-b border-border bg-card">
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Date</th>
@@ -139,8 +139,8 @@ function ReceiptsPage() {
         </div>
 
         {selected && (
-          <div className="rounded-xl border border-border bg-card p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h2 className="font-heading text-lg font-semibold text-foreground">Receipt Preview</h2>
               <Button size="sm" onClick={() => handlePrint(selected)} className="bg-primary text-primary-foreground">
                 <Printer className="h-4 w-4 mr-1" /> Print
