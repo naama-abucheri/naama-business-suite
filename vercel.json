@@ -1,7 +1,8 @@
 {
-  "buildCommand": "bun run build",
+  "buildCommand": "npm install -g bun && bun install && bun run build",
   "outputDirectory": "dist/client",
   "framework": "vite",
+  "nodeVersion": "20.x",
   "rewrites": [
     {
       "source": "/(.*)",
