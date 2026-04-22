@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ function SalesPage() {
   const [sales, setSales] = useState<(Tables<"sales"> & { products?: { name: string } | null; clients?: { client_name: string } | null })[]>([]);
   const [form, setForm] = useState({ product_id: "", client_id: "", quantity: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -41,16 +42,40 @@ function SalesPage() {
     if (user && role === "employer") fetchData();
   }, [user, role]);
 
-  const handleSale = async (e: React.FormEvent) => {
+  const handleSale = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
     if (!user) return;
     const product = products.find((p) => p.id === form.product_id);
-    if (!product) return;
-    const qty = parseInt(form.quantity);
-    if (qty <= 0 || qty > product.stock_quantity) return;
+    if (!product) {
+      setError("Please select a valid product.");
+      return;
+    }
 
-    const total = qty * Number(product.selling_price);
-    const profit = qty * (Number(product.selling_price) - Number(product.buying_price));
+    const qty = Number(form.quantity);
+    if (Number.isNaN(qty) || !Number.isInteger(qty)) {
+      setError("Quantity must be a whole number.");
+      return;
+    }
+
+    if (qty <= 0) {
+      setError("Quantity must be at least 1.");
+      return;
+    }
+
+    if (qty > product.stock_quantity) {
+      setError(`Quantity cannot exceed available stock (${product.stock_quantity}).`);
+      return;
+    }
+
+    const sellingPrice = Number(product.selling_price);
+    if (Number.isNaN(sellingPrice) || sellingPrice < 0) {
+      setError("The selected product has an invalid selling price.");
+      return;
+    }
+
+    const total = qty * sellingPrice;
+    const profit = qty * (sellingPrice - Number(product.buying_price));
 
     setSubmitting(true);
     await supabase.from("sales").insert({
@@ -58,7 +83,7 @@ function SalesPage() {
       client_id: form.client_id || null,
       quantity_sold: qty,
       buying_price: Number(product.buying_price),
-      selling_price: Number(product.selling_price),
+      selling_price: sellingPrice,
       total_amount: total,
       profit,
       created_by: user.id,
@@ -79,6 +104,11 @@ function SalesPage() {
 
       <div className="mb-8 max-w-lg rounded-xl border border-border bg-card p-6">
         <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">New Sale</h2>
+        {error && (
+          <div className="mb-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSale} className="space-y-4">
           <div>
             <Label className="text-foreground">Product</Label>

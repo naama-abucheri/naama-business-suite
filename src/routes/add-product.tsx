@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -23,21 +23,46 @@ function AddProductPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
   }, [user, loading, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    setError("");
+
+    const name = form.name.trim();
+    const buyingPrice = Number(form.buying_price);
+    const sellingPrice = Number(form.selling_price);
+    const stockQuantity = Number(form.stock_quantity);
+
+    if (!name) {
+      setError("Product name is required.");
+      return;
+    }
+    if (Number.isNaN(buyingPrice) || buyingPrice < 0) {
+      setError("Buying price must be a valid non-negative number.");
+      return;
+    }
+    if (Number.isNaN(sellingPrice) || sellingPrice < 0) {
+      setError("Selling price must be a valid non-negative number.");
+      return;
+    }
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+      setError("Stock quantity must be a whole number 0 or higher.");
+      return;
+    }
+
     setSubmitting(true);
     const { error } = await supabase.from("products").insert({
-      name: form.name,
+      name,
       category: form.category || null,
-      buying_price: parseFloat(form.buying_price) || 0,
-      selling_price: parseFloat(form.selling_price) || 0,
-      stock_quantity: parseInt(form.stock_quantity) || 0,
+      buying_price: buyingPrice,
+      selling_price: sellingPrice,
+      stock_quantity: stockQuantity,
       added_by: user.id,
     });
     setSubmitting(false);
@@ -61,6 +86,11 @@ function AddProductPage() {
         {success && (
           <div className="mb-4 rounded-lg bg-accent/10 p-3 text-sm text-accent">
             Product added successfully!
+          </div>
+        )}
+        {error && (
+          <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">

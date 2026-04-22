@@ -19,6 +19,7 @@ function InventoryPage() {
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: "", category: "", buying_price: 0, selling_price: 0, stock_quantity: 0 });
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -39,8 +40,28 @@ function InventoryPage() {
   };
 
   const handleUpdate = async (id: string) => {
+    setError("");
+
+    const name = editForm.name.trim();
+    if (!name) {
+      setError("Product name is required.");
+      return;
+    }
+    if (Number.isNaN(editForm.buying_price) || editForm.buying_price < 0) {
+      setError("Buying price must be a valid non-negative number.");
+      return;
+    }
+    if (Number.isNaN(editForm.selling_price) || editForm.selling_price < 0) {
+      setError("Selling price must be a valid non-negative number.");
+      return;
+    }
+    if (!Number.isInteger(editForm.stock_quantity) || editForm.stock_quantity < 0) {
+      setError("Stock quantity must be a whole number 0 or higher.");
+      return;
+    }
+
     await supabase.from("products").update({
-      name: editForm.name,
+      name,
       category: editForm.category,
       buying_price: editForm.buying_price,
       selling_price: editForm.selling_price,
@@ -76,6 +97,11 @@ function InventoryPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full">
           <thead>

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     client_name: "",
     client_address: "",
@@ -69,21 +70,45 @@ function InvoicesPage() {
     if (user) fetchInvoices();
   }, [user]);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
-    setSubmitting(true);
-    const total = Number(form.quantity) * Number(form.unit_price);
+    setError("");
+
+    const clientName = form.client_name.trim();
+    const productName = form.product_name.trim();
+    const quantity = Number(form.quantity);
+    const unitPrice = Number(form.unit_price);
+
+    if (!clientName) {
+      setError("Client name is required.");
+      return;
+    }
+    if (!productName) {
+      setError("Product/service description is required.");
+      return;
+    }
+    if (Number.isNaN(quantity) || !Number.isFinite(quantity) || quantity <= 0) {
+      setError("Quantity must be a positive number.");
+      return;
+    }
+    if (Number.isNaN(unitPrice) || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      setError("Unit price must be a valid non-negative number.");
+      return;
+    }
+
+    const total = quantity * unitPrice;
     const number = `INV-${Date.now().toString().slice(-6)}`;
+    setSubmitting(true);
     await supabase.from("invoices").insert({
       invoice_number: number,
-      client_name: form.client_name,
+      client_name: clientName,
       client_address: form.client_address || null,
       client_phone: form.client_phone || null,
       client_email: form.client_email || null,
-      product_name: form.product_name,
-      quantity: Number(form.quantity),
-      unit_price: Number(form.unit_price),
+      product_name: productName,
+      quantity,
+      unit_price: unitPrice,
       total_amount: total,
       due_date: form.due_date || null,
       notes: form.notes || null,
@@ -179,6 +204,11 @@ function InvoicesPage() {
 
       {showForm && (
         <div className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-6 max-w-full lg:max-w-2xl">
+          {error && (
+            <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>

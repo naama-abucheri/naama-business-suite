@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ function QuotationsPage() {
     notes: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login" });
@@ -59,23 +60,45 @@ function QuotationsPage() {
     if (user) fetchQuotations();
   }, [user]);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user || !form.client_name || !form.product_name || !form.quantity || !form.unit_price) return;
-    
+    if (!user) return;
+    setError("");
+
+    const clientName = form.client_name.trim();
+    const productName = form.product_name.trim();
+    const quantity = Number(form.quantity);
+    const unitPrice = Number(form.unit_price);
+
+    if (!clientName) {
+      setError("Client name is required.");
+      return;
+    }
+    if (!productName) {
+      setError("Product name is required.");
+      return;
+    }
+    if (Number.isNaN(quantity) || !Number.isFinite(quantity) || quantity <= 0) {
+      setError("Quantity must be a positive number.");
+      return;
+    }
+    if (Number.isNaN(unitPrice) || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      setError("Unit price must be a valid non-negative number.");
+      return;
+    }
+
     setSubmitting(true);
-    const total = Number(form.quantity) * Number(form.unit_price);
-    
+    const total = quantity * unitPrice;
     await supabase.from("quotations").insert({
-      client_name: form.client_name,
-      product_name: form.product_name,
-      quantity: Number(form.quantity),
-      unit_price: Number(form.unit_price),
+      client_name: clientName,
+      product_name: productName,
+      quantity,
+      unit_price: unitPrice,
       total_amount: total,
       notes: form.notes || null,
       created_by: user.id,
     });
-    
+
     setForm({ client_name: "", product_name: "", quantity: "", unit_price: "", notes: "" });
     setShowForm(false);
     setSubmitting(false);
@@ -141,6 +164,11 @@ function QuotationsPage() {
 
       {showForm && (
         <div className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-6 max-w-full lg:max-w-lg">
+          {error && (
+            <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleAdd} className="space-y-4">
             <div>
               <Label className="text-foreground">Client Name</Label>
