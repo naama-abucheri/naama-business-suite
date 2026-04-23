@@ -39,6 +39,10 @@ export const Route = createRootRoute({
       { property: "og:description", content: "Naama is a smart inventory, client, and sales management system for modern businesses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Naama — Smart Inventory Management" },
+      { name: "twitter:description", content: "Naama is a smart inventory, client, and sales management system for modern businesses." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/19e5188b-f35a-462b-8254-09d96f6a571f/id-preview-fa0744a9--a0e73fa2-e63f-4f26-a2ef-7fd981429506.lovable.app-1776865543027.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/19e5188b-f35a-462b-8254-09d96f6a571f/id-preview-fa0744a9--a0e73fa2-e63f-4f26-a2ef-7fd981429506.lovable.app-1776865543027.png" },
     ],
     links: [
       {
